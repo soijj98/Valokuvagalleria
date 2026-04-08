@@ -1,6 +1,19 @@
+# Python / venv
 venv/
+.venv/
 __pycache__/
-*.pyc
+*.py[cod]
+
+# React / Node
+node_modules/
+dist/
+build/
+.eslintcache
+
+# Tietokanta ja asetukset
 db.sqlite3
-media/
 .env
+
+# Käyttöjärjestelmien omat roskat
+.DS_Store
+Thumbs.db
