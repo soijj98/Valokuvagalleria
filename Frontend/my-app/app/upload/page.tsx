@@ -1,28 +1,62 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 
 
 export default function UploadPage() {
-    const [selectImage, setSelectImage] = useState<File | null>(null);
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [AlbumId, setAlbumId] = useState("");
+    const [Image, setImage] = useState<File | null>(null);
+    const [albums, setAlbums] = useState<{ id: number; name: string }[]>([]);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const router = useRouter();
+
+
+    //haetaan albumit
+    useEffect(() => {
+        const fetchAlbums = async () => {
+            const res = await fetch("http://localhost:3000/api/albums");
+            setAlbums(await res.json());
+
+            //testidata, jos tarvii
+            // setAlbums([]{ id: 1, name: "Lomamatka" }, { id: 2, name: "Perhe" }]);
+        };
+        fetchAlbums();
+    
+    }, []);
+
+    const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    //KUN LÄHETETÄÄN KUVIA, pitää käyttää FormData -objektia, jotta saadaan lähetettyä myös tiedosto
+    const formData = new FormData();
+        formData.append("title", title);
+        formData.append("description", description);
+        formData.append("albumId", AlbumId);
+        if (Image) {
+            formData.append("image", Image);
+        }
+
+        console.log("Lähetetään Django-backendille:", Object.fromEntries(formData)); //tarkistetaan mitä dataa lähetetään
+        alert("valmiina lähetykseen!");
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
-            setSelectImage(file);
+            setImage(file);
             setPreviewUrl(URL.createObjectURL(file)); //väliaikainen URL esikatselua varten
         }
     };
 
-    const handleUpload = async (e: React.FormEvent) => {
-        e.preventDefault();
-        //simuloidaan lataus
-        alert("kuva lähetetty (simulaatio)!");
-        router.push("/profile"); //ohjataan profiiliin latauksen jälkeen
-    };
+    // const handleUpload = async (e: React.FormEvent) => {
+    //     e.preventDefault();
+    //     //simuloidaan lataus
+    //     alert("kuva lähetetty (simulaatio)!");
+    //     router.push("/profile"); //ohjataan profiiliin latauksen jälkeen
+    // };
   
   
     return (
