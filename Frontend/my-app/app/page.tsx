@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { mock } from "node:test";
 
 export default function Home() {
   return (
@@ -16,3 +17,6 @@ export default function Home() {
     </div>
   );
 }
+
+
+//next tuo käyttäjän tallentaminen, mock
