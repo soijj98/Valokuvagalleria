@@ -130,10 +130,13 @@ def delete_photo(request, photo_id):
     return Response({'message': 'Kuva poistettu'})
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def albums(request):
     if request.method == 'GET':
-        albums = Album.objects.filter(owner=request.user)
+        
+        albums = Album.objects.all()
+        #kommentoitu pois, jotta saa kaikki albumit
+        #albums = Album.objects.filter(owner=request.user)
         serializer = AlbumSerializer(albums, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
