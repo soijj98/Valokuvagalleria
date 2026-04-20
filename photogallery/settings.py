@@ -136,3 +136,6 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = FALSE #vain testauksen ajaksi, jotta nähdään evästeet
