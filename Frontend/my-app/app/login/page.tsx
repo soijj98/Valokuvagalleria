@@ -6,18 +6,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 
-const mockApiLogin = async (username: string, password: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 800)); // Simuloi viivettä
-
-    //testitunnus: admin, salasana: password
-    if (username === "admin" && password === "password") {
-        return { success: true, user: { id: 1, name: "Admin Käyttäjä" } };
-    } else {
-        return { success: false, message: "Väärä käyttäjätunnus tai salasana" };
-    }
-};
-
-
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -28,18 +16,34 @@ export default function LoginPage() {
     e.preventDefault();
     setError(""); //nollataan vanhat virheet
 
-    const result = await mockApiLogin(username, password);
-    if (result.success) {
-      // Kirjautuminen onnistui
-      //TALLENNUS: Laitetaan tieto selaimen muistiin(localstorage)
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("user", JSON.stringify(result.user));
 
-      //ohjataan etusivulle
-      router.push("/");
-    } else {
-      // Kirjautuminen epäonnistui
-      setError(result.message || "Kirjautuminen epäonnistui");
+    try {
+        const response = await fetch("http://127.0.0.1:8000/api/login/", {
+            method: "POST",
+            headers: {
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify({ username, password }),
+
+            credentials: "include",
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Kirjautuminen onnistui:", data);
+
+            //ohjataan etusivulle
+            router.push("/profile");
+
+        
+        } else {
+            //jos status on 401 (unauthorized)
+            const errorData = await response.json();
+            setError(errorData.error || "Väärä käyttäjänimi tai salasana.");
+        }
+    } catch (err) {
+        console.error("Verkkovirhe:", err);
+        setError("Yhteys palvelimeen epäonnistui.");
     }
   };
 

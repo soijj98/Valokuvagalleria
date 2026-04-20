@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from .models import Album, Photo
 from .serializers import AlbumSerializer, PhotoSerializer
 from PIL import Image
+#from django.views.decorators.csrf import csrf_exempt
 import os
 
 @api_view(['POST'])
@@ -30,6 +31,8 @@ def register_view(request):
         status=status.HTTP_201_CREATED
     )
 
+#jos kirjautuminen tökkii
+#@csrf_exempt 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -130,7 +133,7 @@ def delete_photo(request, photo_id):
     return Response({'message': 'Kuva poistettu'})
 
 @api_view(['GET', 'POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated]) #isauthenticated????
 def albums(request):
     if request.method == 'GET':
         
