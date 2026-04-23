@@ -124,9 +124,19 @@ STATIC_URL = 'static/'
 
 import os
 
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  
+    "http://localhost:3000",
+    "http://127.0.0.1.3000",  
 ]
+
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
+
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = FALSE #vain testauksen ajaksi, jotta nähdään evästeet

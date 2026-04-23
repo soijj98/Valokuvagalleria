@@ -29,6 +29,8 @@ def register_view(request):
         status=status.HTTP_201_CREATED
     )
 
+#jos kirjautuminen tökkii
+#@csrf_exempt 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_view(request):
@@ -50,9 +52,12 @@ def logout_view(request):
     return Response({'message': 'Uloskirjautuminen onnistui'})
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny]) #testing
 def home_view(request):
-    return Response({'message': f'Hei {request.user.username}!'})
+    if request.user.is_authenticated:
+        return Response({'message': f'Hei {request.user.username}!'})
+    return Response({'message': 'Et ole kirjautunut'}, status=401)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -128,10 +133,13 @@ def delete_photo(request, photo_id):
     return Response({'message': 'Kuva poistettu'})
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated]) #isauthenticated????
 def albums(request):
     if request.method == 'GET':
-        albums = Album.objects.filter(owner=request.user)
+        
+        albums = Album.objects.all()
+        #kommentoitu pois, jotta saa kaikki albumit
+        #albums = Album.objects.filter(owner=request.user)
         serializer = AlbumSerializer(albums, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
