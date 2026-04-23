@@ -70,12 +70,6 @@ def home_view(request):
         return JsonResponse({
             'message': ''
         })
-  
-  
-   # return Response({
-   #     'username': request.user.username,
-    #    'message': f'Hei {request.user.username}!'
-   # })
 
 
 

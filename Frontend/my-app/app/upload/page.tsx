@@ -101,14 +101,14 @@ export default function UploadPage() {
                 <input
                     type="text"
                     placeholder="Kuvan otsikko"
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded border-gray-300 text-black"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                 />
 
                 {/* Albuminvalinta */}
                 <select
-                    className="w-full p-2 border rounded"
+                    className="w-full p-2 border rounded border-gray-300 text-black"
                     value={albumId}
                     onChange={(e) => setAlbumId(e.target.value)}
 
@@ -124,7 +124,7 @@ export default function UploadPage() {
                 </select>
                 <textarea 
                     placeholder="Kuvaus"
-                    className="w-full p-2 border rounded text-black"
+                    className="w-full p-2 border rounded border-gray-300 text-black"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)} // Tämä pitää löytyä!
 /> 
