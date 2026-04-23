@@ -1,8 +1,23 @@
-
 "use client";
-import {useEffect, useState} from "react"; 
+import { useEffect, useState } from "react"; 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
 
 
 export default function Navbar() {
@@ -10,87 +25,69 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-
   useEffect(() => {
-
     const checkLoginStatus = async () => {
-
-      //kokeillaan localStoragea ekaksi
-      const localStatus = localStorage.getItem("IsLoggedIn") === "true";
-      if (localStatus) {
-        setIsLoggedIn(true);
-      }
-      
       try {
-        const response = await fetch("http://127.0.0.1:8000/api/home/", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/home/`, {
           credentials: "include",
+          cache: "no-store", // Varmistaa, että saadaan tuore status joka kerta
         });
 
-       // if(response.status === 401) {
-       //   setIsLoggedIn(false);
-      //  localStorage.removeItem("IsLoggedIn");
-         // return;
-        //}
-      
-        // setIsLoggedIn(response.ok); //jos status on 200, ollaan kirjautuneena, muuten ei
-        if(!response.ok) {
+        // Jos status on 200 OK, käyttäjä on oikeasti kirjautunut sisään Djangon päässä
+        if (response.ok) {
           setIsLoggedIn(true);
-          localStorage.setItem("IsLoggedIn", "true");
         } else {
           setIsLoggedIn(false);
-          localStorage.removeItem("IsLoggedIn");
         }
-
       } catch (error) {
-        
         console.error("Network or server error:", error);
-        //setIsLoggedIn(false)
+        setIsLoggedIn(false);
       }
     };
 
     checkLoginStatus();
-
-    window.addEventListener("storage", checkLoginStatus); //kuuntelee localStorage muutoksia, jotta saadaan päivitettyä navbarin tila kirjautumisen jälkeen
-
-    return () => {
-      window.removeEventListener("storage", checkLoginStatus);
-    };
-  }, [pathname]); //ajaa tarkistuksen aina, kun sivu (polku) vaihtuu
-
+  }, [pathname]); // Ajaa tarkistuksen aina, kun sivu (polku) vaihtuu
 
   const handleLogout = async () => {
-    try  {
-      await fetch("http://127.0.0.1:8000/api/logout/", {
+try {
+      // 1. Haetaan CSRF-token selaimen evästeistä
+      const csrftoken = getCookie('csrftoken');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout/`, {
         method: "POST",
+        headers: {
+          // 2. Lisätään token pyynnön otsakkeisiin
+          "X-CSRFToken": csrftoken,
+        },
         credentials: "include"
       });
-      localStorage.removeItem("IsLoggedIn");
-      setIsLoggedIn(false);
-      router.push("/login");
+      
+      if (response.ok) {
+        setIsLoggedIn(false);
+        router.push("/login");
+      }
     } catch (error) {
       console.log("Uloskirjautuminen epäonnistui", error);
     }
   };
-  
 
   return (
     <nav className="flex gap-4 p-4 bg-gray-100 text-black shadow-sm">
       <Link href="/" className="font-bold">Etusivu</Link>
       <div className="flex gap-4 ml-auto">
-        {isLoggedin ? (
+        {!isLoggedin ? (
+          <>
+            <Link href="/login">Kirjaudu</Link>
+            <Link href="/register" className="bg-blue-500 text-white px-3 py-1 rounded">Luo tunnus</Link>
+          </>
+        ) : (
           <>
             <Link href="/upload">Lataa kuva</Link>
             <Link href="/profile">Profiili</Link>
             <button onClick={handleLogout} className="hover:text-red-400 font-semibold">Kirjaudu ulos</button>
           </>
-        ) : (
-          <>
-            <Link href="/login">Kirjaudu</Link>
-            <Link href="/register" className="bg-blue-500 text-white px-3 py-1 rounded">Luo tunnus</Link>
-          </>
         )}
       </div>
     </nav>
   );
-
 }

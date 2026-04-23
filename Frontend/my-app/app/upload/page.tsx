@@ -18,7 +18,7 @@ export default function UploadPage() {
     useEffect(() => {
         const fetchAlbums = async () => {
             try {
-                const response = await fetch("http://127.0.0.1:8000/api/albums/", {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/`, {
                     method: 'GET',
                     credentials: 'include',
                 });
@@ -57,7 +57,7 @@ export default function UploadPage() {
     
 
         try {
-            const response = await fetch("http://127.0.0.1:8000/api/photos/upload/", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/photos/upload/`, {
                 method: "POST",
                 body: formData,
                 credentials: "include", //lähetetään cookiet, jos backend vaatii autentikointia

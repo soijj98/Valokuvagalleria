@@ -48,6 +48,8 @@ def login_view(request):
         status=status.HTTP_401_UNAUTHORIZED
     )
 
+
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_view(request):

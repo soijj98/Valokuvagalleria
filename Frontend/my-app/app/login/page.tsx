@@ -1,7 +1,6 @@
 // app/login/page.tsx
 "use client";
 import Image from "next/image";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -18,27 +17,20 @@ export default function LoginPage() {
 
 
     try {
-        const response = await fetch("http://127.0.0.1:8000/api/login/", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login/`, {
             method: "POST",
             headers: {
                 "Content-type": "application/json",
             },
             body: JSON.stringify({ username, password }),
-
             credentials: "include",
         });
 
         if (response.ok) {
             const data = await response.json();
             console.log("Kirjautuminen onnistui:", data);
-
-            localStorage.setItem("IsLoggedIn", "true");
-            
-            window.dispatchEvent(new Event("storage"));
-            //ohjataan profiiliin / etusivulle kirjautumisen jälkeen
             router.push("/profile"); //(" / ") etusivulle
 
-        
         } else {
             //jos status on 401 (unauthorized)
             const errorData = await response.json();
