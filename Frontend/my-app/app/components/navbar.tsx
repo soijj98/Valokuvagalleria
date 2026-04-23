@@ -26,16 +26,22 @@ export default function Navbar() {
   const pathname = usePathname();
 
   useEffect(() => {
+    if (pathname === "/login" || pathname === "/register") {
+      setIsLoggedIn(false);
+      return; // Ei tarvitse tarkistaa login-statusia, jos ollaan login-sivulla
+    }
+
     const checkLoginStatus = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/home/`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/check-auth/`, {
           credentials: "include",
           cache: "no-store", // Varmistaa, että saadaan tuore status joka kerta
         });
 
         // Jos status on 200 OK, käyttäjä on oikeasti kirjautunut sisään Djangon päässä
         if (response.ok) {
-          setIsLoggedIn(true);
+          const data = await response.json();
+          setIsLoggedIn(data.is_logged_in);
         } else {
           setIsLoggedIn(false);
         }

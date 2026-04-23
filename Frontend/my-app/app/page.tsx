@@ -12,12 +12,18 @@ export default function Home() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/home/`, {
           credentials:"include",
         });
-        if (res.ok) {   //message backendissa, ei username
+
+        if (res.ok) {  
           const data = await res.json();
-          setUser(data.message.replace('Hei ', '').replace('!', ''));
+          
+          if (data.message) {
+            setUser(data.message.replace('Hei ', '').replace('!', ''));
+          } else {
+            setUser(null); //jos message tyhjä, käyttäjä on null
+          } 
         }
       } catch (err) {
-        console.log("Ei kirjautunutta käyttäjää");
+        console.log("Verkkovirhe tai palvelin alhaalla", err);
       }
     };
     fetchHome();
