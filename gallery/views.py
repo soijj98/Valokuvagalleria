@@ -6,8 +6,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from .models import Album, Photo
 from .serializers import AlbumSerializer, PhotoSerializer
-from PIL import Image
-import os
+from sorl.thumbnail import get_thumbnail
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -69,7 +68,6 @@ def upload_photo(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Tarkista tiedostomuoto
     allowed_formats = ['image/jpeg', 'image/png', 'image/gif']
     if image_file.content_type not in allowed_formats:
         return Response(
@@ -77,7 +75,6 @@ def upload_photo(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Hae albumi
     try:
         album = Album.objects.get(id=album_id, owner=request.user)
     except Album.DoesNotExist:
@@ -86,7 +83,6 @@ def upload_photo(request):
             status=status.HTTP_404_NOT_FOUND
         )
 
-    # Tallenna kuva
     photo = Photo.objects.create(
         album=album,
         owner=request.user,
@@ -95,26 +91,28 @@ def upload_photo(request):
         image=image_file
     )
 
-    # Luo thumbnail Pillowilla
-    img = Image.open(photo.image.path)
-    img.thumbnail((300, 300))
-    thumb_dir = os.path.join('media', 'thumbnails')
-    os.makedirs(thumb_dir, exist_ok=True)
-    thumb_filename = f'thumb_{os.path.basename(photo.image.name)}'
-    thumb_path = os.path.join(thumb_dir, thumb_filename)
-    img.save(thumb_path)
-    photo.thumbnail = f'thumbnails/{thumb_filename}'
-    photo.save()
+    # sorl-thumbnail luo esikatselukuvan automaattisesti
+    thumbnail = get_thumbnail(photo.image, '300x300', crop='center', quality=85)
 
     serializer = PhotoSerializer(photo)
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    data = serializer.data
+    data['thumbnail_url'] = thumbnail.url
+
+    return Response(data, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_photos(request):
     photos = Photo.objects.filter(owner=request.user)
-    serializer = PhotoSerializer(photos, many=True)
-    return Response(serializer.data)
+    result = []
+    for photo in photos:
+        serializer = PhotoSerializer(photo)
+        data = serializer.data
+        # Luo thumbnail jokaiselle kuvalle
+        thumbnail = get_thumbnail(photo.image, '300x300', crop='center', quality=85)
+        data['thumbnail_url'] = thumbnail.url
+        result.append(data)
+    return Response(result)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -151,3 +149,17 @@ def albums(request):
         )
         serializer = AlbumSerializer(album)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_by_tag(request):
+    tag = request.query_params.get('tag')
+    photos = Photo.objects.filter(tags__name__in=[tag], owner=request.user)
+    result = []
+    for photo in photos:
+        serializer = PhotoSerializer(photo)
+        data = serializer.data
+        thumbnail = get_thumbnail(photo.image, '300x300', crop='center', quality=85)
+        data['thumbnail_url'] = thumbnail.url
+        result.append(data)
+    return Response(result)

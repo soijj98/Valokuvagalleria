@@ -1,8 +1,7 @@
 from django.db import models
-
-from django.db import models
 from django.contrib.auth.models import User
 from taggit.managers import TaggableManager
+from sorl.thumbnail import ImageField
 
 class Album(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -18,8 +17,7 @@ class Photo(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='photos/')
-    thumbnail = models.ImageField(upload_to='thumbnails/', blank=True)
+    image = ImageField(upload_to='photos/')
     tags = TaggableManager()
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
