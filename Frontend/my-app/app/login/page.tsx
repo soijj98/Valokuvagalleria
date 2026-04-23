@@ -32,8 +32,11 @@ export default function LoginPage() {
             const data = await response.json();
             console.log("Kirjautuminen onnistui:", data);
 
-            //ohjataan etusivulle
-            router.push("/profile");
+            localStorage.setItem("IsLoggedIn", "true");
+            
+            window.dispatchEvent(new Event("storage"));
+            //ohjataan profiiliin / etusivulle kirjautumisen jälkeen
+            router.push("/profile"); //(" / ") etusivulle
 
         
         } else {

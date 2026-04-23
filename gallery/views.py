@@ -1,9 +1,12 @@
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from .models import Album, Photo
 from .serializers import AlbumSerializer, PhotoSerializer
 from sorl.thumbnail import get_thumbnail
@@ -52,12 +55,19 @@ def logout_view(request):
     return Response({'message': 'Uloskirjautuminen onnistui'})
 
 @api_view(['GET'])
-#@permission_classes([IsAuthenticated])
-@permission_classes([AllowAny]) #testing
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+@csrf_exempt 
+#@permission_classes([AllowAny]) #testing
 def home_view(request):
-    if request.user.is_authenticated:
-        return Response({'message': f'Hei {request.user.username}!'})
-    return Response({'message': 'Et ole kirjautunut'}, status=401)
+    return Response({
+        'username': request.user.username,
+        'message': f'Hei {request.user.username}!'
+    })
+
+    #if request.user.is_authenticated:
+       # return Response({'message': f'Hei {request.user.username}!'})
+   # return Response({'message': 'Et ole kirjautunut'}, status=401)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

@@ -14,22 +14,47 @@ export default function Navbar() {
   useEffect(() => {
 
     const checkLoginStatus = async () => {
+
+      //kokeillaan localStoragea ekaksi
+      const localStatus = localStorage.getItem("IsLoggedIn") === "true";
+      if (localStatus) {
+        setIsLoggedIn(true);
+      }
+      
       try {
         const response = await fetch("http://127.0.0.1:8000/api/home/", {
           credentials: "include",
         });
+
+       // if(response.status === 401) {
+       //   setIsLoggedIn(false);
+      //  localStorage.removeItem("IsLoggedIn");
+         // return;
+        //}
       
-      if (response.ok) {
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false)
+        // setIsLoggedIn(response.ok); //jos status on 200, ollaan kirjautuneena, muuten ei
+        if(!response.ok) {
+          setIsLoggedIn(true);
+          localStorage.setItem("IsLoggedIn", "true");
+        } else {
+          setIsLoggedIn(false);
+          localStorage.removeItem("IsLoggedIn");
         }
+
       } catch (error) {
-        setIsLoggedIn(false)
+        
+        console.error("Network or server error:", error);
+        //setIsLoggedIn(false)
       }
     };
 
     checkLoginStatus();
+
+    window.addEventListener("storage", checkLoginStatus); //kuuntelee localStorage muutoksia, jotta saadaan päivitettyä navbarin tila kirjautumisen jälkeen
+
+    return () => {
+      window.removeEventListener("storage", checkLoginStatus);
+    };
   }, [pathname]); //ajaa tarkistuksen aina, kun sivu (polku) vaihtuu
 
 
@@ -39,6 +64,7 @@ export default function Navbar() {
         method: "POST",
         credentials: "include"
       });
+      localStorage.removeItem("IsLoggedIn");
       setIsLoggedIn(false);
       router.push("/login");
     } catch (error) {
@@ -49,7 +75,7 @@ export default function Navbar() {
 
   return (
     <nav className="flex gap-4 p-4 bg-gray-100 text-black shadow-sm">
-      <Link href="/home" className="font-bold">Etusivu</Link>
+      <Link href="/" className="font-bold">Etusivu</Link>
       <div className="flex gap-4 ml-auto">
         {isLoggedin ? (
           <>

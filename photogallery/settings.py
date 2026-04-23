@@ -55,6 +55,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Käytä tietokantapohjaista sessiota
+
 ROOT_URLCONF = 'photogallery.urls'
 
 TEMPLATES = [
@@ -132,11 +134,20 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://127.0.0.1.3000",  
+    "http://127.0.0.1:3000",  
 ]
 
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+
+# ilman https (eli localhost)
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_HTTPONLY = FALSE #vain testauksen ajaksi, jotta nähdään evästeet
+# SESSION_COOKIE_HTTPONLY = False #vain testauksen ajaksi, jotta nähdään evästeet
+
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False

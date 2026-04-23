@@ -13,3 +13,10 @@ class PhotoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Photo
         fields = ['id', 'album', 'title', 'description', 'image', 'thumbnail', 'tags', 'uploaded_at']
+
+    def get_thumbnail_url(self, obj):
+        if obj.image:
+            # luodaan 300x300 kokoinen pikkukuva
+            thumb = self.get_thumbnail_url(obj.image, '300x300', crop='center', quality=99)
+            return thumb
+        return None

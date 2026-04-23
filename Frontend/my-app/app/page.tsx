@@ -12,9 +12,9 @@ export default function Home() {
         const res = await fetch("http://127.0.0.1:8000/api/home/", {
           credentials:"include",
         });
-        if (res.ok) {
+        if (res.ok) {   //message backendissa, ei username
           const data = await res.json();
-          setUser(data.username);
+          setUser(data.message.replace('Hei ', '').replace('!', ''));
         }
       } catch (err) {
         console.log("Ei kirjautunutta käyttäjää");
@@ -41,6 +41,3 @@ export default function Home() {
     </div>
   );
 }
-
-
-//next tuo käyttäjän tallentaminen, mock
