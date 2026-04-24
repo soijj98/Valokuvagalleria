@@ -93,7 +93,7 @@ export default function ProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {photos.map(photo => (
                             <div key={photo.id} className="aspect-square relative overflow-hidden rounded-lg shadow hover:opacity-90 transition">   
-                            <Image src={photo.image} alt={photo.title} fill className="object-cover" />
+                            <Image src={photo.image} alt={photo.title} fill className="object-cover unoptimized" />
                             </div>
                         ))}
                         {photos.length === 0 && <p className="col-span-full text-gray-500">Ei vielä ladattuja kuvia</p>}  
@@ -138,7 +138,7 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {photos.map(photo => (
                                 <div key={photo.id} className="aspect-square relative overflow-hidden rounded-lg shadow">
-                                    <Image src={photo.image} alt={photo.title} fill className="object-cover" />
+                                    <Image src={photo.image} alt={photo.title} fill className="object-cover unoptimized" />
                                 </div>
                             ))}
                         </div>

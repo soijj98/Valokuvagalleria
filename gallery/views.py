@@ -110,28 +110,15 @@ def upload_photo(request):
         image=image_file
     )
 
-    # sorl-thumbnail luo esikatselukuvan automaattisesti
-    thumbnail = get_thumbnail(photo.image, '300x300', crop='center', quality=85)
-
-    serializer = PhotoSerializer(photo)
-    data = serializer.data
-    data['thumbnail_url'] = thumbnail.url
-
-    return Response(data, status=status.HTTP_201_CREATED)
+    serializer = PhotoSerializer(photo, context={'request': request})
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_photos(request):
     photos = Photo.objects.filter(owner=request.user)
-    result = []
-    for photo in photos:
-        serializer = PhotoSerializer(photo)
-        data = serializer.data
-        # Luo thumbnail jokaiselle kuvalle
-        thumbnail = get_thumbnail(photo.image, '300x300', crop='center', quality=85)
-        data['thumbnail_url'] = thumbnail.url
-        result.append(data)
-    return Response(result)
+    serializer = PhotoSerializer(photos, many=True, context={'request': request})
+    return Response(serializer.data)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -151,11 +138,10 @@ def delete_photo(request, photo_id):
 def albums(request):
     if request.method == 'GET':
         
-        albums = Album.objects.all()
-        #kommentoitu pois, jotta saa kaikki albumit
-        #albums = Album.objects.filter(owner=request.user)
+        albums = Album.objects.filter(owner=request.user)
         serializer = AlbumSerializer(albums, many=True)
         return Response(serializer.data)
+    
     elif request.method == 'POST':
         name = request.data.get('name')
         description = request.data.get('description', '')
@@ -177,14 +163,8 @@ def albums(request):
 def search_by_tag(request):
     tag = request.query_params.get('tag')
     photos = Photo.objects.filter(tags__name__in=[tag], owner=request.user)
-    result = []
-    for photo in photos:
-        serializer = PhotoSerializer(photo)
-        data = serializer.data
-        thumbnail = get_thumbnail(photo.image, '300x300', crop='center', quality=85)
-        data['thumbnail_url'] = thumbnail.url
-        result.append(data)
-    return Response(result)
+    serializer = PhotoSerializer(photos, many=True, context={'request': request})
+    return Response(serializer.data)
 
 def check_auth_status(request):
     if request.user.is_authenticated:

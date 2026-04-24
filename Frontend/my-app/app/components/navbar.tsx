@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 
 
-function getCookie(name) {
+function getCookie(name: string) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';');
@@ -63,7 +63,7 @@ try {
         method: "POST",
         headers: {
           // 2. Lisätään token pyynnön otsakkeisiin
-          "X-CSRFToken": csrftoken,
+          "X-CSRFToken": csrftoken || "",
         },
         credentials: "include"
       });

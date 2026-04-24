@@ -2,7 +2,20 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-
+function getCookie(name: string) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
 
 export default function UploadPage() {
     const [title, setTitle] = useState("");
@@ -11,6 +24,8 @@ export default function UploadPage() {
     const [image, setImage] = useState<File | null>(null);
     const [albums, setAlbums] = useState<{ id: number; name: string }[]>([]);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isCreatingAlbum, setIsCreatingAlbum] = useState(false);
+    const [newAlbumName, setNewAlbumName] = useState("");
     const router = useRouter();
 
 
@@ -57,12 +72,17 @@ export default function UploadPage() {
     
 
         try {
+            const csrftoken = getCookie('csrftoken'); //haetaan CSRF-token evästeistä
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/photos/upload/`, {
                 method: "POST",
+                headers: {
+                    "X-CSRFToken": csrftoken || "", //lisätään token otsakkeisiin
+                },
                 body: formData,
                 credentials: "include", //lähetetään cookiet, jos backend vaatii autentikointia
-        
             });
+
             if (response.ok) {
                 alert("Kuva ladattu onnistuneesti!");
                 router.push("/profile"); //ohjataan profiiliin latauksen jälkeen
@@ -73,8 +93,6 @@ export default function UploadPage() {
         } catch (error) {
             console.error("Virhe kuvan latauksessa:", error);
         }
-
-        console.log("Lähetetään Django-backendille:", Object.fromEntries(formData)); //tarkistetaan mitä dataa lähetetään
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,18 +103,46 @@ export default function UploadPage() {
         }
     };
 
-    // const handleUpload = async (e: React.FormEvent) => {
-    //     e.preventDefault();
-    //     //simuloidaan lataus
-    //     alert("kuva lähetetty (simulaatio)!");
-    //     router.push("/profile"); //ohjataan profiiliin latauksen jälkeen
-    // };
-  
-  
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        }
+    }, [previewUrl]);
+
+    const handleCreateAlbum = async () => {
+        if (!newAlbumName) return;
+        try {
+            const csrftoken = getCookie('csrftoken');
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken || "",
+                },
+                body: JSON.stringify({ name: newAlbumName }),
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                const createdAlbum = await response.json();
+                setAlbums([...albums, createdAlbum]);
+                setAlbumId(createdAlbum.id.toString());
+                setIsCreatingAlbum(false);
+                setNewAlbumName("");
+                alert("Albumi luotu onnistuneesti!");
+            }
+        } catch (error) {
+            console.error("Virhe albumin luomisessa:", error);
+        }
+    };
+    
     return (
         <main className="p-10 max-w-lg mx-auto bg-gray-100 rounded-lg shadow-md">
             <h1 className="text-2xl font-bold mb-6 text-black">Lataa kuva</h1>
             <form onSubmit ={handleUpload} className="space-y-4">   
+                
                 {/* Otsikko */}
                 <input
                     type="text"
@@ -107,14 +153,11 @@ export default function UploadPage() {
                 />
 
                 {/* Albuminvalinta */}
-                <select
+             {/*   <select
                     className="w-full p-2 border rounded border-gray-300 text-black"
                     value={albumId}
                     onChange={(e) => setAlbumId(e.target.value)}
-
-                >
-
-                
+                >                
                 <option value="">Valitse albumi</option>
                 {albums.map((album) => (
                     <option key={album.id} value={album.id}>
@@ -122,6 +165,39 @@ export default function UploadPage() {
                     </option>
                 ))}
                 </select>
+                */}
+                <div className="flex gap-2 items-end">
+                    {!isCreatingAlbum ? (
+                        <div className="flex-1">
+                            <label className="block text-sm text-gray-700 mb-1">Uusi albumi</label>
+                            <select 
+                                className="w-full p-2 border rounded border-gray-300 text-black"
+                                value={albumId}
+                                onChange={(e) => setAlbumId(e.target.value)}
+                            >
+                                <option value="">Valitse albumi</option>
+                                {albums.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                             </select>
+                    </div>
+                    ) : (
+                        <div className="flex-1">
+                            <label className="block text-sm text-gray-700 mb-1">Uuden albumin nimi</label>
+                            <input 
+                            type = "text"
+                            className="w-full p-2 border rounded border-gray-300 text-black"
+                            value={newAlbumName}
+                            onChange={(e) => setNewAlbumName(e.target.value)}
+                            />
+                        </div>
+                    )}
+                    <button
+                        type="button"
+                        onClick={(isCreatingAlbum) ? handleCreateAlbum : () => setIsCreatingAlbum(true)}
+                        className="bg-gray-200 px-3 py-2 rounded text-sm text-black hover:bg-gray-300"
+                    >
+                        {isCreatingAlbum ? "Tallenna" : "Uusi albumi"}
+                    </button>
+                </div>
                 <textarea 
                     placeholder="Kuvaus"
                     className="w-full p-2 border rounded border-gray-300 text-black"
