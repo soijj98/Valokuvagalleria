@@ -8,7 +8,7 @@ class AlbumSerializer(serializers.ModelSerializer):
         model = Album
         fields = ['id', 'owner', 'name', 'description', 'created_at']
 
-class PhotoSerializer(serializers.ModelSerializer):
+class PhotoSerializer(TaggitSerializer, serializers.ModelSerializer):
     tags = TagListSerializerField()
     thumbnail = serializers.SerializerMethodField()
     
@@ -19,9 +19,7 @@ class PhotoSerializer(serializers.ModelSerializer):
     def get_thumbnail(self, obj):
         if obj.image:
             try:
-            # luodaan 300x300 kokoinen pikkukuva
-                thumb = self.get_thumbnail(obj.image, '300x300', crop='center', quality=99)
-            
+                thumb = get_thumbnail(obj.image, '300x300', crop='center', quality=99)
                 request = self.context.get('request')
                 if request:
                     return request.build_absolute_uri(thumb.url)
