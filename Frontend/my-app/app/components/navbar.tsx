@@ -33,7 +33,7 @@ export default function Navbar() {
 
     const checkLoginStatus = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/check-auth/`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/check-auth/`, {
           credentials: "include",
           cache: "no-store", // Varmistaa, että saadaan tuore status joka kerta
         });
@@ -59,7 +59,7 @@ try {
       // 1. Haetaan CSRF-token selaimen evästeistä
       const csrftoken = getCookie('csrftoken');
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/logout/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/logout/`, {
         method: "POST",
         headers: {
           // 2. Lisätään token pyynnön otsakkeisiin

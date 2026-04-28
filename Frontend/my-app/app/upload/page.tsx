@@ -33,7 +33,7 @@ export default function UploadPage() {
     useEffect(() => {
         const fetchAlbums = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/`, {
                     method: 'GET',
                     credentials: 'include',
                 });
@@ -74,7 +74,7 @@ export default function UploadPage() {
         try {
             const csrftoken = getCookie('csrftoken'); //haetaan CSRF-token evästeistä
 
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/photos/upload/`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/photos/upload/`, {
                 method: "POST",
                 headers: {
                     "X-CSRFToken": csrftoken || "", //lisätään token otsakkeisiin
@@ -115,7 +115,7 @@ export default function UploadPage() {
         if (!newAlbumName) return;
         try {
             const csrftoken = getCookie('csrftoken');
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

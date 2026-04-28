@@ -28,10 +28,10 @@ export default function ProfilePage() {
         const fetchData = async () => {
             try {
                 const [photosRes, albumsRes] = await Promise.all([
-                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/photos/`, {
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/photos/`, {
                         credentials: "include",
                     }),
-                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/`, {
+                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/`, {
                         credentials: "include",
                     }),
                 ]);
@@ -52,7 +52,7 @@ export default function ProfilePage() {
         setLoading(true);
         setSelectedAlbum(album);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/${album.id}/photos/`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${album.id}/photos/`, {
                 credentials: "include",
             });
             if (res.ok) {
