@@ -127,7 +127,7 @@ def delete_photo(request, photo_id):
         photo = Photo.objects.get(id=photo_id, owner=request.user)
     except Photo.DoesNotExist:
         return Response(
-            {'error': 'Kuvaa ei löydy'},
+            {'error': 'Kuvaa ei löydy tai sinulla ei ole oikeus poistaa sitä.'},
             status=status.HTTP_404_NOT_FOUND
         )
     photo.delete()
@@ -157,6 +157,46 @@ def albums(request):
         )
         serializer = AlbumSerializer(album)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+@api_view(['DELETE', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def album_detail(request, album_id):
+    try: 
+        album = Album.objects.get(id=album_id, owner=request.user)
+    except Album.DoesNotExist:
+        return Response(
+            {'error': 'Albumia ei löydy tai sinulla ei ole oikeus muokata sitä.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    if request.method == 'DELETE':
+        album.delete()
+        return Response(
+            {'message': 'Albumi poistettu'}, status=status.HTTP_204_NO_CONTENT
+       )
+
+    elif request.method == 'PATCH':
+        serializer = AlbumSerializer(album, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_album(request, album_id):
+    try:
+        # Varmistetaan, että albumi on olemassa ja se kuuluu pyynnön tekijälle
+        album = Album.objects.get(id=album_id, owner=request.user)
+    except Album.DoesNotExist:
+        return Response(
+            {'error': 'Albumia ei löydy tai sinulla ei ole oikeutta poistaa sitä'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    # Poistetaan albumi (ja siihen liittyvät kuvat, jos tietokannassa on CASCADE-asetus)
+    album.delete()
+    return Response({'message': 'Albumi poistettu'}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

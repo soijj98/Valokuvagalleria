@@ -10,5 +10,7 @@ urlpatterns = [
     path('api/photos/', views.get_photos, name='get_photos'),
     path('api/photos/<int:photo_id>/delete/', views.delete_photo, name='delete_photo'),
     path('api/albums/', views.albums, name='albums'),
+    path('api/albums/<int:album_id>/', views.album_detail, name='album_detail'),
+    path('api/albums/<int:album_id>/delete/', views.delete_album, name='delete_album'),
     path('api/check-auth/', views.check_auth_status, name='check_auth_status'),
 ]

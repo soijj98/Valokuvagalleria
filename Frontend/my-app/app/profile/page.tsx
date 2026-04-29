@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { re } from "mathjs";
 
 type Photo = {
     id: number;
@@ -45,7 +46,8 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
     const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([]); //albumin kuvat erikseen, jotta voidaan näyttää vain albumin kuvat album-detail-näkymässä
-
+    const [isEditingAlbum, setIsEditingAlbum] = useState(false); //albumin muokkaustilan hallinta
+    const [editAlbumName, setEditAlbumName] = useState(""); //muokattavan albumin nimi
     //lightbox-albuminäkymän tilat
     const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
 
@@ -103,13 +105,13 @@ export default function ProfilePage() {
     // };
 
     const handleDeletePhoto = async (photoId: number) => {
-        const confrimDelete = window.confirm("Haluatko varmasti poistaa tämän kuvan? Toimintoa ei voi peruuttaa.");
-        if (!confrimDelete) return;
+        const confirmDelete = window.confirm("Haluatko varmasti poistaa tämän kuvan? Toimintoa ei voi peruuttaa.");
+        if (!confirmDelete) return;
 
         const csrftoken = getCookie('csrftoken'); 
     
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/photos/${photoId}/`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/photos/${photoId}/delete/`, {
                 method: "DELETE",
                 headers: {
                     "X-CSRFToken": csrftoken || "",
@@ -125,6 +127,7 @@ export default function ProfilePage() {
                 alert("Kuva on poistettu.");
             } else {
                 alert("Kuvan poisto epäonnistui.");
+                alert(`Kuvan poisto epäonnistui. Virhekoodi: ${response.status}`);
             }
         } catch (error) {
             console.error("Virhe kuvan poistossa:", error);
@@ -132,6 +135,70 @@ export default function ProfilePage() {
         }
     };
 
+    const handleDeleteAlbum = async (albumId: number) => {
+        const confirmDelete = window.confirm("Haluatko varmasti poistaa tämän albumin? Toimintoa ei voi peruuttaa. Albumin mukana poistuvat myös kaikki albumin kuvat.");
+        // poistuuko kaikki kuvat?
+        if (!confirmDelete) return;
+
+        const csrftoken = getCookie('csrftoken');
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${albumId}/delete/`, {
+                //delete albumille
+                method: "DELETE",
+                headers: {
+                    "X-CSRFToken": csrftoken || "",
+                },
+                credentials: "include"
+            });
+
+            if (response.ok) {
+                // poistetaan albumi albumilistasta
+                setAlbums(albums.filter(a => a.id !== albumId));
+                setView('albums');
+                setSelectedAlbum(null);
+                alert("Albumi on poistettu.");
+            }   else {
+                alert("Albumin poisto epäonnistui.");
+            }
+        } catch (error) {
+            console.error("Virhe albumin poistossa:", error);
+            alert("Albumin poisto epäonnistui.");
+        }
+    };
+
+    const handleSaveAlbumName = async () => {
+        if (!selectedAlbum || !editAlbumName) return;
+        
+        const csrftoken = getCookie('csrftoken');
+    
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${selectedAlbum.id}/`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken || "",
+                },
+                credentials: "include",
+                body: JSON.stringify({ name: editAlbumName })
+            });
+
+            if (response.ok) {
+                
+                const updatedAlbum = await response.json();
+                // Päivitetään albumin nimi ja suljetaan muokkaus
+                setAlbums(albums.map(a => a.id === updatedAlbum.id ? updatedAlbum : a));
+                setSelectedAlbum(updatedAlbum);
+                setIsEditingAlbum(false);
+                alert("Albumin nimi päivitetty.");
+            } else {
+                alert("Albumin nimen päivitys epäonnistui.");
+            }
+        } catch (error) {
+            console.error("Virhe albumin nimen päivityksessä:", error);
+            alert("Albumin nimen päivitys epäonnistui.");
+        }
+    }
 
 
 
@@ -215,11 +282,50 @@ export default function ProfilePage() {
                             onClick={() => {
                                 setView('albums');
                                 setSelectedAlbum(null);
+                                setIsEditingAlbum(false);
                             }}
                             className="mb-4 text-blue-600 hover:underline font-semibold"
                         >
                         ← Takaisin albumeihin
                         </button>
+
+                        <div className="flex items-center justify-between mb-6">
+                            {isEditingAlbum ? (
+                                <div className="flex gap-2 w-full max-w-md">
+                                    <input 
+                                        type="text" 
+                                        value={editAlbumName}
+                                        onChange={(e) => setEditAlbumName(e.target.value)}
+                                        className="border p-2 rounded flex-1 text-black"
+                                    />
+                                    <button onClick={handleSaveAlbumName} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                                        Tallenna
+                                    </button>
+                                    <button onClick={() => setIsEditingAlbum(false)} className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
+                                        Peruuta
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                                    <h2 className="text-2xl font-bold text-black">{selectedAlbum.name}</h2>
+                                    <div className="flex gap-3">
+                                        <button 
+                                            onClick={() => { setIsEditingAlbum(true); setEditAlbumName(selectedAlbum.name); }} 
+                                            className="text-sm text-blue-600 hover:underline"
+                                        >
+                                            Muokkaa nimeä
+                                        </button>
+                                        <button 
+                                            onClick={() => handleDeleteAlbum(selectedAlbum.id)} 
+                                            className="text-sm text-red-600 hover:underline"
+                                        >
+                                            Poista albumi
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <h2 className="text-2xl font-bold mb-6 text-black">{selectedAlbum.name}</h2>
 
                         <div className="grid grid-cols sm:grid-cols-2 md:grid-cols-3 gap-6">
