@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import imageCompression from "browser-image-compression";
 
 function getCookie(name: string) {
     let cookieValue = null;
@@ -26,6 +27,7 @@ export default function UploadPage() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isCreatingAlbum, setIsCreatingAlbum] = useState(false);
     const [newAlbumName, setNewAlbumName] = useState("");
+    const [isUpLoading, setIsUploading] = useState(false);
     const router = useRouter();
 
 
@@ -62,16 +64,26 @@ export default function UploadPage() {
             alert("Valitse kuva ja albumi!");
             return;
         }   
-    
-        const formData = new FormData();
-        formData.append("title", title);
-        formData.append("description", description);
-        formData.append("album", albumId);
-        formData.append("image", image);
-      
-    
-
+        
+        setIsUploading(true);
         try {
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true,
+            };
+
+            const compressedFile = await imageCompression(image, options);
+            console.log("Alkuperäinen koko:", image.size / 1024, "KB");
+            console.log("Pakkaamisen jälkeen:", compressedFile.size / 1024, "KB");
+
+            const formData = new FormData();
+            formData.append("title", title);
+            formData.append("description", description);
+            formData.append("album", albumId);
+            formData.append("image", compressedFile);
+        
+            
             const csrftoken = getCookie('csrftoken'); //haetaan CSRF-token evästeistä
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/photos/upload/`, {
@@ -92,6 +104,8 @@ export default function UploadPage() {
             }
         } catch (error) {
             console.error("Virhe kuvan latauksessa:", error);
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -219,10 +233,12 @@ export default function UploadPage() {
 
                 <button
                     type="submit"
-                    disabled={!image || !albumId}
-                    className="mt-4 rounded-md bg-blue-600 py-2 px-4 font-semibold text-white hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    disabled={!image || !albumId || isUpLoading}
+                    className={`mt-4 w-full rounded-md py-2 px-4 font-semibold text-white transition-colors ${
+                        isUpLoading ? 'bg-blue-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400'
+                    }`}
                 >
-                    Lataa kuva
+                    {isUpLoading ? "Käsitellään..." : "Lataa kuva"}
                 </button>
             </form>
         </main>

@@ -25,11 +25,16 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
+  //ollaanko kirjautumissivulla
+  const isAuthPage = pathname === "/login" || pathname === "/register";
+
   useEffect(() => {
-    if (pathname === "/login" || pathname === "/register") {
-      setIsLoggedIn(false);
-      return; // Ei tarvitse tarkistaa login-statusia, jos ollaan login-sivulla
+    // jos ollaan login- tai register-sivulla, ei tarvitse hakea login-statusia, koska käyttäjä ei voi olla kirjautuneena niillä sivuilla
+    if (isAuthPage) {
+      return;
     }
+
+    
 
     const checkLoginStatus = async () => {
       try {
@@ -52,36 +57,38 @@ export default function Navbar() {
     };
 
     checkLoginStatus();
-  }, [pathname]); // Ajaa tarkistuksen aina, kun sivu (polku) vaihtuu
+  }, [pathname, isAuthPage]); // Ajaa tarkistuksen aina, kun sivu (polku) vaihtuu
 
   const handleLogout = async () => {
-try {
-      // 1. Haetaan CSRF-token selaimen evästeistä
-      const csrftoken = getCookie('csrftoken');
+    try {
+          // 1. Haetaan CSRF-token selaimen evästeistä
+          const csrftoken = getCookie('csrftoken');
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/logout/`, {
-        method: "POST",
-        headers: {
-          // 2. Lisätään token pyynnön otsakkeisiin
-          "X-CSRFToken": csrftoken || "",
-        },
-        credentials: "include"
-      });
-      
-      if (response.ok) {
-        setIsLoggedIn(false);
-        router.push("/login");
-      }
-    } catch (error) {
-      console.log("Uloskirjautuminen epäonnistui", error);
-    }
-  };
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/logout/`, {
+            method: "POST",
+            headers: {
+              // 2. Lisätään token pyynnön otsakkeisiin
+              "X-CSRFToken": csrftoken || "",
+            },
+            credentials: "include"
+          });
+          
+          if (response.ok) {
+            setIsLoggedIn(false);
+            router.push("/login");
+          }
+        } catch (error) {
+          console.log("Uloskirjautuminen epäonnistui", error);
+        }
+      };
+
+  const showAsLoggedIn = isLoggedin && !isAuthPage;
 
   return (
     <nav className="flex gap-4 p-4 bg-gray-100 text-black shadow-sm">
       <Link href="/" className="font-bold">Etusivu</Link>
       <div className="flex gap-4 ml-auto">
-        {!isLoggedin ? (
+        {!showAsLoggedIn ? (
           <>
             <Link href="/login">Kirjaudu</Link>
             <Link href="/register" className="bg-blue-500 text-white px-3 py-1 rounded">Luo tunnus</Link>
