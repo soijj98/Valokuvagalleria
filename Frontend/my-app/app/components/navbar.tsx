@@ -87,6 +87,8 @@ export default function Navbar() {
   return (
     <nav className="flex gap-4 p-4 bg-gray-100 text-black shadow-sm">
       <Link href="/" className="font-bold">Etusivu</Link>
+      <h1 className="text-4xl font-extrabold mb-2 text-center">Valokuvagalleria</h1>
+      
       <div className="flex gap-4 ml-auto">
         {!showAsLoggedIn ? (
           <>

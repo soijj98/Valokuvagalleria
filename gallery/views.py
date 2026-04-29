@@ -199,6 +199,15 @@ def delete_album(request, album_id):
     return Response({'message': 'Albumi poistettu'}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+@permission_classes([AllowAny]) 
+def public_photo_feed(request):
+    # Haetaan kaikki kuvat tietokannasta, järjestettynä uusimmasta vanhimpaan
+    # (Olettaen, että mallissa on esim. created_at -kenttä. Jos ei ole, poista .order_by(...))
+    photos = Photo.objects.all().order_by('-id') 
+    serializer = PhotoSerializer(photos, many=True, context={'request': request})
+    return Response(serializer.data)
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def search_by_tag(request):
     tag = request.query_params.get('tag')
