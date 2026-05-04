@@ -155,6 +155,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://valokuvagalleria.vercel.app", 
+    "https://*.vercel.app",
  #   "https://valokuvagalleria-e8kcmnw8c-saijajoronen-1521s-projects.vercel.app", # LISÄTTY TÄMÄ
 ]
 
