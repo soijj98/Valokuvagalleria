@@ -17,7 +17,7 @@ class Photo(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    image = ImageField(upload_to='photos/')
+    image = models.ImageField(upload_to='photos/')
     tags = TaggableManager()
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

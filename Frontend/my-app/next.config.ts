@@ -21,11 +21,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'valokuvagalleria-backend.onrender.com',
+        hostname: 'valokuvagalleria-05qk.onrender.com',
       }
     ],
   },

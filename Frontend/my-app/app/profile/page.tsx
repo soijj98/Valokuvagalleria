@@ -243,7 +243,7 @@ export default function ProfilePage() {
 
 
     return (
-        <main className="p-10 max-w-screen bg-gray-100 rounded-lg shadow-md">
+        <main className="text-center p-10 w-full max-w-7xl mx-auto bg-gray-100 rounded-lg shadow-md">
             <h1 className="text-3xl text-black font-bold mb-2">Oma profiili</h1>
             {user && (
                 <p className="text-lg text-gray-600">
@@ -274,7 +274,7 @@ export default function ProfilePage() {
                 {/* NÄKYMÄ 1: Kaikki kuvat */}
 
                 {view === 'photos' && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                         {photos.map(photo => (
                             <div 
                                 key={photo.id}
