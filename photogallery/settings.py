@@ -145,16 +145,17 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
-# CORS_ALLOWED_ORIGIN_REGEXES = [
-#     r"^http://localhost:3000$",
-#     r"^http://127\.0\.0\.1:3000$",
-#     r"^https://valokuvagalleria.*\.vercel\.app$", # Sallii KAIKKI Vercelin luomat alidomainit tälle projektille
-# ]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost:3000$",
+    r"^http://127\.0\.0\.1:3000$",
+    r"^https://valokuvagalleria.*\.vercel\.app$", 
+]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://valokuvagalleria.vercel.app",
+    "https://valokuvagalleria-8eksq1nzk-saijajoronen-1521s-projects.vercel.app" # LISÄTÄÄN TÄMÄ!
 ]
 
 
