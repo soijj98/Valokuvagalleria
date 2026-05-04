@@ -37,8 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
-    'cloudinary',
     'django.contrib.staticfiles',
     'gallery',        
     'taggit',
@@ -133,27 +131,23 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 import os
 
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dknlc1wo1',
-    'API_KEY': '357491758484349',
-    'API_SECRET': 'nuOyq_N997m2y2ptPGZGUldFnMw',
-}
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",  
-    "https://valokuvagalleria-frontend.onrender.com",
+    "https://valokuvagalleria.vercel.app",
 ]
 
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://valokuvagalleria-frontend.onrender.com", 
+    "https://valokuvagalleria.vercel.app", 
 ]
 
 
@@ -162,7 +156,10 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = True
 
+# # ilman https (eli localhost)
+# SESSION_COOKIE_SAMESITE = 'Lax'
+# CSRF_COOKIE_SAMESITE = 'Lax'
+# # SESSION_COOKIE_HTTPONLY = False #vain testauksen ajaksi, jotta nähdään evästeet
 
-
-# SESSION_COOKIE_HTTPONLY = False #vain testauksen ajaksi, jotta nähdään evästeet
-
+# SESSION_COOKIE_SECURE = False
+# CSRF_COOKIE_SECURE = False
