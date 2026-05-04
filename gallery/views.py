@@ -244,6 +244,11 @@ def search_by_tag(request):
     serializer = PhotoSerializer(photos, many=True, context={'request': request})
     return Response(serializer.data)
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_root(request):
+    return Response({"status": "Backend pyörii normaalisti!", "version": "1.0"})
+
 def check_auth_status(request):
     if request.user.is_authenticated:
         return JsonResponse({'is_logged_in': True})
