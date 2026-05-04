@@ -26,12 +26,10 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-
-  //ollaanko kirjautumissivulla
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
   useEffect(() => {
-    // jos ollaan login- tai register-sivulla, ei tarvitse hakea login-statusia, koska käyttäjä ei voi olla kirjautuneena niillä sivuilla
+
     if (isAuthPage) {
       return;
     }
@@ -133,7 +131,7 @@ export default function Navbar() {
             )}
 
           </div>
-          {/* Mobiilivalikon avauspainike (Näkyy vain mobiilissa 'md:hidden' avulla) */}
+
                     <div className="md:hidden flex items-center">
                         <button 
                             onClick={() => setIsOpen(!isOpen)} 
@@ -145,7 +143,7 @@ export default function Navbar() {
                 </div>
             </div>
         
-            {/* Mobiilivalikon alasveto (Renderöidään vain jos isOpen on true) */}
+
             {isOpen && (
                 <div className="md:hidden bg-white border-t border-gray-100 shadow-lg absolute w-full">
                     <div className="px-4 pt-2 pb-6 space-y-2 flex flex-col">
@@ -196,7 +194,7 @@ export default function Navbar() {
                             >
                               <UserPlus className="w-6 h-6" /> Rekisteröidy
                             </Link>
-                          </>
+                        </>
                       )}
                   </div>
               </div>
@@ -204,25 +202,5 @@ export default function Navbar() {
 
 
     </nav>
-
-    // <nav className="flex gap-4 p-4 bg-gray-100 text-black shadow-sm">
-    //   <Link href="/" className="font-bold">Etusivu</Link>
-    //   <h1 className="text-4xl font-extrabold mb-2 text-center">Valokuvagalleria</h1>
-      
-    //   <div className="flex gap-4 ml-auto">
-    //     {!showAsLoggedIn ? (
-    //       <>
-    //         <Link href="/login">Kirjaudu</Link>
-    //         <Link href="/register" className="bg-blue-500 text-white px-3 py-1 rounded">Luo tunnus</Link>
-    //       </>
-    //     ) : (
-    //       <>
-    //         <Link href="/upload">Lataa kuva</Link>
-    //         <Link href="/profile">Profiili</Link>
-    //         <button onClick={handleLogout} className="hover:text-red-400 font-semibold">Kirjaudu ulos</button>
-    //       </>
-    //     )}
-    //   </div>
-    // </nav>
   );
 }

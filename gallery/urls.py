@@ -14,4 +14,5 @@ urlpatterns = [
     path('api/albums/<int:album_id>/delete/', views.delete_album, name='delete_album'),
     path('api/feed/', views.public_photo_feed, name='public_feed'),
     path('api/check-auth/', views.check_auth_status, name='check_auth_status'),
+    path('api/photos/<int:photo_id>/update/', views.update_photo, name='update_photo'),
 ]

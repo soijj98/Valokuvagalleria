@@ -7,7 +7,10 @@ type Photo = {
     title: string;
     description: string;
     image: string;
-    // uploader_username: string; // Tämän voi lisätä myöhemmin, kun backend palauttaa lataajan nimen
+    thumbnail: string;
+    tags: string[];
+    uploaded_at: string;
+    uploader_username: string; 
 };
 
 export default function HomePage() {
@@ -44,9 +47,6 @@ export default function HomePage() {
         );
     }
 
-
-// eri näkymät kirjautuneelle vs ei
-
     return (
         <main className="p-10 max-w-screen ">
 
@@ -61,15 +61,21 @@ export default function HomePage() {
                         className="group aspect-square relative overflow-hidden rounded-xl shadow-md cursor-pointer bg-gray-200"
                     >
                         <Image 
-                            src={photo.image} 
+                            src={photo.thumbnail || photo.image} 
                             alt={photo.title} 
                             fill 
                             className="object-cover transition-transform duration-300 group-hover:scale-105" 
                             unoptimized 
                         />
+                        <div className="absolute bottom-0 left-0 right-0 bg-gray-900/60 backdrop-blur-sm p-2">
+                                <p className="text-white text-xs font-medium truncate">
+                                    @{photo.uploader_username || "Käyttäjä"}
+                                </p>
+                        </div>
+
                         {/* Pieni himmennys ja otsikko hoverilla */}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                            <h3 className="text-white font-bold truncate">{photo.title || "Nimetön kuva"}</h3>
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="text-white font-bold px-4 text-center">{photo.title}</span>
                         </div>
                     </div>
                 ))}
@@ -81,9 +87,17 @@ export default function HomePage() {
                 )}
             </div>
 
-            {/* LIGHTBOX / SUURENNETTU KUVA */}
+            {/* LIGHTBOX */}
             {selectedPhoto && (
                 <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 sm:p-4 md:p-8">
+                    {/* Käyttäjänimi kuvan yläpuolella */}
+                <div className="mb-4 text-center">
+                    <span className="text-blue-400 font-semibold tracking-wide uppercase text-sm">Ladannut:</span>
+                    <h3 className="text-white text-xl font-bold">@{selectedPhoto.uploader_username}</h3>
+                    <p className="text-gray-400 text-xs">
+                        Ladattu: {new Date(selectedPhoto.uploaded_at).toLocaleDateString("fi-FI")}
+                    </p>
+                </div>
                     <button 
                         onClick={() => setSelectedPhoto(null)}
                         className="absolute top-4 right-4 md:top-6 md:right-6 text-white text-4xl md:text-5xl font-bold hover:text-gray-300 p-2 z-50"
@@ -104,54 +118,16 @@ export default function HomePage() {
                     <div className="text-white text-center max-w-2xl px-4 w-full">
                         <h2 className="text-xl md:text-3xl font-bold mb-2">{selectedPhoto.title}</h2>
                         <p className="text-sm md:text-lg text-gray-300 mb-6">{selectedPhoto.description}</p>
+                            <div className="flex flex-wrap justify-center gap-2 mb-4">
+                                {selectedPhoto.tags && selectedPhoto.tags.map((tag, index) => (
+                                    <span key={index} className="bg-blue-600/30 border border-blue-500 text-blue-300 px-2 py-1 rounded-full text-xs font-semibold">
+                                        #{tag}
+                                    </span>
+                                ))}
+                            </div>
                     </div>
                 </div>
             )}
         </main>
     );
 }
-// export default function Home() {
-
-//   const [user, setUser] = useState(null);
-
-//   useEffect(() => {
-//     const fetchHome = async () => {
-//       try {
-//         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/home/`, {
-//           credentials:"include",
-//         });
-
-//         if (res.ok) {  
-//           const data = await res.json();
-          
-//           if (data.message) {
-//             setUser(data.message.replace('Hei ', '').replace('!', ''));
-//           } else {
-//             setUser(null); //jos message tyhjä, käyttäjä on null
-//           } 
-//         }
-//       } catch (err) {
-//         console.log("Verkkovirhe tai palvelin alhaalla", err);
-//       }
-//     };
-//     fetchHome();
-//   }, []);
-
-//   return (
-//     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-//       <main className="p-10">
-//         {user ? (
-//         <h1 className="text-5xl font-bold mb-10">Tervetuloa valokuvagalleriaan {user} !</h1>
-//         ) : (
-//           <h1 className="text-3xl font-bold">Tervetuloa kuvagalleriaan! Kirjaudu sisään nähdäksesi kuvat</h1>
-//        )}
-//           <p className="text-xl mb-10">Tämä on esimerkki Next.js-sovelluksesta, jossa on kirjautumissivu ja navigaatiopalkki.</p> 
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-//           <Image src="/ana-curcan-WOzS69lhz_U-unsplash.jpg" alt="Esimerkkikuva" width={600} height={400} className="rounded-lg shadow-lg" />
-//           <Image src="/harrison-lin-QNKVNphoqHU-unsplash.jpg" alt="Esimerkkikuva" width={600} height={400} className="rounded-lg shadow-lg mt-10" />
-//         </div>
-      
-//       </main>
-//     </div>
-//   );
-// }

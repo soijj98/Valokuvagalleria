@@ -28,10 +28,9 @@ export default function UploadPage() {
     const [isCreatingAlbum, setIsCreatingAlbum] = useState(false);
     const [newAlbumName, setNewAlbumName] = useState("");
     const [isUpLoading, setIsUploading] = useState(false);
+    const [tagInput, setTagInput] = useState("");
     const router = useRouter();
 
-
-    //haetaan albumit
     useEffect(() => {
         const fetchAlbums = async () => {
             try {
@@ -56,8 +55,6 @@ export default function UploadPage() {
 
     const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    //KUN LÄHETETÄÄN KUVIA, pitää käyttää FormData -objektia, jotta saadaan lähetettyä myös tiedosto
 
         
         if (!image || !albumId) {
@@ -86,10 +83,17 @@ export default function UploadPage() {
             
             const csrftoken = getCookie('csrftoken'); //haetaan CSRF-token evästeistä
 
+            const tagArray = tagInput
+                .split(/[, ]+/)
+                .filter(t => t.trim() !== "");
+            tagArray.forEach(tag => formData.append("tags", tag));
+
+            console.log("Lähetettävä tägilista:", tagArray);
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/photos/upload/`, {
                 method: "POST",
                 headers: {
-                    "X-CSRFToken": csrftoken || "", //lisätään token otsakkeisiin
+                    "X-CSRFToken": csrftoken || "", 
                 },
                 body: formData,
                 credentials: "include", //lähetetään cookiet, jos backend vaatii autentikointia
@@ -97,7 +101,7 @@ export default function UploadPage() {
 
             if (response.ok) {
                 alert("Kuva ladattu onnistuneesti!");
-                router.push("/profile"); //ohjataan profiiliin latauksen jälkeen
+                router.push("/profile"); 
             } else {
                 const errorData = await response.json();
                 alert("Virhe: " + (errorData.error || "Lataus epäonnistui"));
@@ -166,20 +170,6 @@ export default function UploadPage() {
                     onChange={(e) => setTitle(e.target.value)}
                 />
 
-                {/* Albuminvalinta */}
-             {/*   <select
-                    className="w-full p-2 border rounded border-gray-300 text-black"
-                    value={albumId}
-                    onChange={(e) => setAlbumId(e.target.value)}
-                >                
-                <option value="">Valitse albumi</option>
-                {albums.map((album) => (
-                    <option key={album.id} value={album.id}>
-                        {album.name}
-                    </option>
-                ))}
-                </select>
-                */}
                 <div className="flex gap-2 items-end">
                     {!isCreatingAlbum ? (
                         <div className="flex-1">
@@ -216,8 +206,21 @@ export default function UploadPage() {
                     placeholder="Kuvaus"
                     className="w-full p-2 border rounded border-gray-300 text-black"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)} // Tämä pitää löytyä!
-/> 
+                    onChange={(e) => setDescription(e.target.value)} 
+                /> 
+                
+                <div className="mb-4">
+                    <label className="block text-black font-bold mb-2">TÄGIT</label>
+                    <input 
+                        type="text"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        placeholder="Syötä tägit pilkuilla eroteltuna"
+                        className="w-full p-3 border rounded-lg text-black bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+
+                </div>
+                    
                 <input
                     type="file"
                     accept="image/*"
@@ -230,6 +233,8 @@ export default function UploadPage() {
                         <img src={previewUrl} alt="Esikatselu" className="w-full h-64 object-cover rounded-lg shadow" />
                     </div>
                 )}
+
+
 
                 <button
                     type="submit"

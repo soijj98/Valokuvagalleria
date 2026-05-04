@@ -110,6 +110,15 @@ def upload_photo(request):
         image=image_file
     )
 
+    tags = request.data.getlist('tags')
+    if not tags:
+        tags_string = request.data.get('tags', '')
+        if tags_string:
+            tags = [t.strip() for t in tags_string.split(',') if t.strip()]
+
+    if tags:
+        photo.tags.add(*tags)
+
     serializer = PhotoSerializer(photo, context={'request': request})
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -132,6 +141,26 @@ def delete_photo(request, photo_id):
         )
     photo.delete()
     return Response({'message': 'Kuva poistettu'})
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_photo(request, photo_id):
+    try:
+        photo = Photo.objects.get(id=photo_id, owner=request.user)
+    except Photo.DoesNotExist:
+        return Response(
+            {'error': 'Kuvaa ei löydy tai sinulla ei ole oikeutta muokata sitä'}, 
+            status=status.HTTP_404_NOT_FOUND
+        )
+
+    # partial=True sallii sen, että päivitämme vain osan kentistä
+    serializer = PhotoSerializer(photo, data=request.data, partial=True, context={'request': request})
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+        
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated]) #isauthenticated????

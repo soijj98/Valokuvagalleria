@@ -1,22 +1,22 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { re } from "mathjs";
 
 type Photo = {
     id: number;
     image: string;
-    album: number; // Oletetaan, että kuva liittyy albumiin album-kentän kautta
+    album: number; 
     title: string;
     description: string;
+    thumbnail: string;
+    tags: string[];
+    uploaded_at: string;
     image_url: string;
 };
 
 type Album = {
     id: number;
     name: string;
-    //description: string; // Voidaan lisätä myöhemmin, jos halutaan näyttää albumin kuvaus
-    //cover_image?: string; // Voidaan lisätä myöhemmin, jos halutaan näyttää albumin kansikuva
 };
 
 // Apufunktio CSRF-tokenille (jos poistofunktio tarvitsee)
@@ -36,26 +36,36 @@ function getCookie(name: string) {
 }
 
 export default function ProfilePage() {
-    //const [view, setView] = useState<"photos" | "albums" | "album-detail">("photos");
-    //välilehden hallinta
     const [view, setView] = useState<"photos" | "albums" | "album-detail">('photos');
-    
     const [photos, setPhotos] = useState<Photo[]>([]);
     const [albums, setAlbums] = useState<Album[]>([]);
-    
-    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<string | null>(null);
     const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
-    const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([]); //albumin kuvat erikseen, jotta voidaan näyttää vain albumin kuvat album-detail-näkymässä
-    const [isEditingAlbum, setIsEditingAlbum] = useState(false); //albumin muokkaustilan hallinta
-    const [editAlbumName, setEditAlbumName] = useState(""); //muokattavan albumin nimi
-    //lightbox-albuminäkymän tilat
+    const [albumPhotos, setAlbumPhotos] = useState<Photo[]>([]); 
+    const [isEditingAlbum, setIsEditingAlbum] = useState(false); 
+    const [editAlbumName, setEditAlbumName] = useState(""); 
     const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+    const [isEditingPhoto, setIsEditingPhoto] = useState(false);
+    const [editTitle, setEditTitle] = useState("");
+    const [editDescription, setEditDescription] = useState("");
+    const [editTags, setEditTags] = useState("");
+    const [editAlbumId, setEditAlbumId] = useState("");
 
 
 
     useEffect(() => {
         const fetchData = async () => {
             try {
+                
+                const userRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/home/`, {
+                    credentials: "include",
+                });
+
+                if (userRes.ok) {
+                    const data = await userRes.json();
+                    setUser(data.message.replace('Hei ', '').replace('!', ''));
+                }
+
                 const photosRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/photos/`, {
                     credentials: "include",
                 });
@@ -83,26 +93,6 @@ export default function ProfilePage() {
 
 
     };
-    //     setLoading(true);
-    //     setSelectedAlbum(album);
-    //     try {
-    //         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${album.id}/photos/`, {
-    //             credentials: "include",
-    //         });
-    //         if (res.ok) {
-    //             const fetchedPhotos = await res.json();
-    //             setAlbumPhotos(fetchedPhotos);
-    //             setView('album-detail');
-    //         }   else {
-    //             console.error("Virhe albumin kuvien haussa:", res.status);
-    //             alert("Albumin kuvien haku epäonnistui.");
-    //         }
-    //     } catch (err) {
-    //         console.error("Virhe albumin kuvien haussa:", err);
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // };
 
     const handleDeletePhoto = async (photoId: number) => {
         const confirmDelete = window.confirm("Haluatko varmasti poistaa tämän kuvan? Toimintoa ei voi peruuttaa.");
@@ -135,16 +125,66 @@ export default function ProfilePage() {
         }
     };
 
+
+    const startEditingPhoto = () => {
+        if (!selectedPhoto) return;
+        setEditTitle(selectedPhoto.title);
+        setEditDescription(selectedPhoto.description);
+        setEditTags(selectedPhoto.tags ? selectedPhoto.tags.join(", ") : "");
+        setEditAlbumId(selectedPhoto.album.toString());
+        setIsEditingPhoto(true);
+    };
+
+    // Lähettää päivitetyt tiedot backendille
+    const handleUpdatePhoto = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedPhoto) return;
+
+        const csrftoken = getCookie('csrftoken');
+        const tagArray = editTags.split(/[, ]+/).filter(t => t.trim() !== "");
+
+        const payload = {
+            title: editTitle,
+            description: editDescription,
+            album: editAlbumId,
+            tags: tagArray
+        };
+
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/photos/${selectedPhoto.id}/update/`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken || "",
+                },
+                body: JSON.stringify(payload),
+                credentials: "include",
+            });
+
+            if (res.ok) {
+                const updatedPhoto = await res.json();
+        
+                setSelectedPhoto(updatedPhoto);
+                setPhotos(photos.map(p => p.id === updatedPhoto.id ? updatedPhoto : p));
+                
+                setIsEditingPhoto(false);
+            } else {
+                const errData = await res.json();
+                alert("Virhe tallennuksessa: " + JSON.stringify(errData));
+            }
+        } catch (error) {
+            console.error("Verkkovirhe muokkauksessa:", error);
+        }
+    };
+
     const handleDeleteAlbum = async (albumId: number) => {
         const confirmDelete = window.confirm("Haluatko varmasti poistaa tämän albumin? Toimintoa ei voi peruuttaa. Albumin mukana poistuvat myös kaikki albumin kuvat.");
-        // poistuuko kaikki kuvat?
         if (!confirmDelete) return;
 
         const csrftoken = getCookie('csrftoken');
 
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/${albumId}/delete/`, {
-                //delete albumille
                 method: "DELETE",
                 headers: {
                     "X-CSRFToken": csrftoken || "",
@@ -155,9 +195,9 @@ export default function ProfilePage() {
             if (response.ok) {
                 // poistetaan albumi albumilistasta
                 setAlbums(albums.filter(a => a.id !== albumId));
+                setPhotos(photos.filter(p => p.album !== albumId));
                 setView('albums');
                 setSelectedAlbum(null);
-                alert("Albumi on poistettu.");
             }   else {
                 alert("Albumin poisto epäonnistui.");
             }
@@ -186,11 +226,11 @@ export default function ProfilePage() {
             if (response.ok) {
                 
                 const updatedAlbum = await response.json();
-                // Päivitetään albumin nimi ja suljetaan muokkaus
+
                 setAlbums(albums.map(a => a.id === updatedAlbum.id ? updatedAlbum : a));
                 setSelectedAlbum(updatedAlbum);
                 setIsEditingAlbum(false);
-                alert("Albumin nimi päivitetty.");
+                
             } else {
                 alert("Albumin nimen päivitys epäonnistui.");
             }
@@ -204,7 +244,12 @@ export default function ProfilePage() {
 
     return (
         <main className="p-10 max-w-screen bg-gray-100 rounded-lg shadow-md">
-            <h1 className="text-3xl text-black font-bold mb-8">Oma profiili</h1>
+            <h1 className="text-3xl text-black font-bold mb-2">Oma profiili</h1>
+            {user && (
+                <p className="text-lg text-gray-600">
+                    Kirjautuneena: <span className="font-semibold text-blue-600">{user}</span>
+                </p>
+            )}
             
             {/* Välilehdet */}
             <div className="flex gap-4 mb-8 border-b pb-4">
@@ -217,8 +262,8 @@ export default function ProfilePage() {
                 <button
                     onClick={() => {
                         setView('albums');
-                        setSelectedAlbum(null); //varmistetaan, että album-detail-näkymä sulkeutuu, jos vaihdetaan suoraan albumit-välilehdelle
-                        setAlbumPhotos([]); //tyhjennetään albumin kuvat, jotta vanhan albumin kuvat ei jää näkyviin, jos uusi albumi on tyhjä
+                        setSelectedAlbum(null); 
+                        setAlbumPhotos([]); 
                     }}
                     className={`font-semibold px-4 py-2 rounded 
                         ${view === 'album-detail' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
@@ -237,7 +282,12 @@ export default function ProfilePage() {
                                 className="aspect-square relative overflow-hidden rounded-lg shadow hover:opacity-90 transition"
                                 >
                                     
-                                <Image src={photo.image} alt={photo.title} fill className="object-cover unoptimized" />
+                                <Image 
+                                    src={photo.thumbnail || photo.image} 
+                                    alt={photo.title}
+                                    fill 
+                                    className="object-cover
+                                    unoptimized" />
                             </div>
                         ))}
                         {photos.length === 0 && <p className="col-span-full text-gray-500">Ei vielä ladattuja kuvia</p>}  
@@ -254,20 +304,6 @@ export default function ProfilePage() {
                                 className="p-6 border rounded-lg bg-gray-50 shadow-sm cursor-pointer text-black hover:bg-gray-200 transition"
                                 >
                                     <h3 className="font-bold text-xl">{album.name}</h3>
-                                  {/*  <p className="text-sm text-gray-600 mt-2">{album.description}</p>
-                                */}
-                                
-                                {/*<div className="aspect-video relative bg-gray-200 rounded-xl overflow-hidden mb-2">
-                                     Voidaan näyttää albumin kansikuva, jos sellainen on */
-                                        /*album.cover_image ? (
-                                            <Image src={album.cover_image} alt={album.name} fill className="object-cover" />
-                                        ) : (
-                                            <div className="flex items-center justify-center h-full text-gray-500">
-                                                Kansikuva puuttuu
-                                            </div>
-                                        )
-                                    
-                                </div>*/}
                             </div>
                         ))}
                             {albums.length === 0 && <p className="col-span-full text-gray-500">Ei vielä luotuja albumeita</p>}
@@ -306,18 +342,18 @@ export default function ProfilePage() {
                                     </button>
                                 </div>
                             ) : (
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                                <div className="flex flex-wrap sm:flex-row sm:items-center gap-4">
                                     <h2 className="text-2xl font-bold text-black">{selectedAlbum.name}</h2>
-                                    <div className="flex gap-3">
+                                    <div className="w-full flex gap-3">
                                         <button 
                                             onClick={() => { setIsEditingAlbum(true); setEditAlbumName(selectedAlbum.name); }} 
-                                            className="text-sm text-blue-600 hover:underline"
+                                            className="w-1/2 text-sm text-blue-600 hover:underline"
                                         >
                                             Muokkaa nimeä
                                         </button>
                                         <button 
                                             onClick={() => handleDeleteAlbum(selectedAlbum.id)} 
-                                            className="text-sm text-red-600 hover:underline"
+                                            className="w-1/2 text-sm text-red-600 hover:underline"
                                         >
                                             Poista albumi
                                         </button>
@@ -326,9 +362,9 @@ export default function ProfilePage() {
                             )}
                         </div>
 
-                        <h2 className="text-2xl font-bold mb-6 text-black">{selectedAlbum.name}</h2>
+                        
 
-                        <div className="grid grid-cols sm:grid-cols-2 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols border border-gray-300 sm:grid-cols-2 md:grid-cols-3 gap-6">
                             {albumPhotos.length > 0 ? (
                                 albumPhotos.map(photo => (
                                     <div 
@@ -336,9 +372,9 @@ export default function ProfilePage() {
                                         onClick={() => setSelectedPhoto(photo)}
                                         className="aspect-square relative overflow-hidden rounded-lg shadow cursor-pointer hover:opacity-80 transition"
                                     >   
-                                        {/* HUOM: Varmista että photo.image on se kenttä missä URL on */}
+
                                         <Image 
-                                            src={photo.image} 
+                                            src={photo.thumbnail || photo.image} 
                                             alt={photo.title} 
                                             fill 
                                             className="object-cover" 
@@ -379,23 +415,73 @@ export default function ProfilePage() {
                                 unoptimized 
                             />
                         </div>
-                        
-
                         <div className="text-white text-center max-w-2xl px-4 w-full">
-                            <h2 className="text-xl md:text-3xl font-bold mb-2">{selectedPhoto.title}</h2>
-                            <p className="text-sm md:text-lg text-gray-300 mb-6">{selectedPhoto.description}</p>
-                            
-                            {handleDeletePhoto && (
-                                <button 
-                                    onClick={() => handleDeletePhoto(selectedPhoto.id)}
-                                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700 px-6 py-3 md:py-2 rounded text-white font-semibold shadow-lg"
-                                >
-                                    Poista kuva
-                                </button>
+                            {isEditingPhoto ? (
+                                /* MUOKKAUSLOMAKE */
+                                <form onSubmit={handleUpdatePhoto} className="bg-gray-800 p-6 rounded-lg text-left shadow-xl space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-1 text-gray-300">Otsikko</label>
+                                        <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-1 text-gray-300">Siirrä albumiin</label>
+                                        <select value={editAlbumId} onChange={(e) => setEditAlbumId(e.target.value)} className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500">
+                                            {albums.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-1 text-gray-300">Tägit (pilkulla erotettuna)</label>
+                                        <input type="text" value={editTags} onChange={(e) => setEditTags(e.target.value)} className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold mb-1 text-gray-300">Kuvaus</label>
+                                        <textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" rows={3}></textarea>
+                                    </div>
+
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-white font-semibold">Tallenna</button>
+                                        <button type="button" onClick={() => setIsEditingPhoto(false)} className="flex-1 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded text-white font-semibold">Peruuta</button>
+                                    </div>
+                                </form>
+                            ) : (
+                                /* NORMAALI NÄKYMÄ JA NAPIT */
+                                <>
+                                    <h2 className="text-xl md:text-3xl font-bold mb-2">{selectedPhoto.title}</h2>
+                                    
+                                    <div className="flex flex-wrap justify-center gap-2 mb-4">
+                                        {selectedPhoto.tags && selectedPhoto.tags.map((tag, index) => (
+                                            <span key={index} className="bg-blue-600/30 border border-blue-500 text-blue-300 px-2 py-1 rounded-full text-xs font-semibold">
+                                                #{tag}
+                                            </span>
+                                        ))}
+                                    </div>
+
+                                    <p className="text-sm md:text-lg text-gray-300 mb-6">{selectedPhoto.description}</p>
+                                    
+                                    <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                                        <button 
+                                            onClick={startEditingPhoto}
+                                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 px-6 py-3 md:py-2 rounded text-white font-semibold shadow-lg"
+                                        >
+                                            Muokkaa
+                                        </button>
+                                        {handleDeletePhoto && (
+                                            <button 
+                                                onClick={() => handleDeletePhoto(selectedPhoto.id)}
+                                                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 px-6 py-3 md:py-2 rounded text-white font-semibold shadow-lg"
+                                            >
+                                                Poista kuva
+                                            </button>
+                                        )}
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>
                 )}
-        </main>
+      </main>
     );
 }
