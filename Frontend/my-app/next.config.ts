@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
     
-    images: {
+  images: {
     unoptimized: true,
     remotePatterns: [
       {
@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
         port: '8000',
         pathname: '/media/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'valokuvagalleria-backend.onrender.com',
+      }
     ],
   },
 };
