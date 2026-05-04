@@ -209,7 +209,7 @@ export default function ProfilePage() {
             {/* Välilehdet */}
             <div className="flex gap-4 mb-8 border-b pb-4">
                 <button
-                    onClick={() => { setView('photos'); /* Tässä pitäisi ehkä hakea kaikki kuvat uudestaan jos ne muuttuivat */}}
+                    onClick={() => { setView('photos'); }}
                     className={`font-semibold px-4 py-2 rounded ${view === 'photos' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
                 >
                     Kaikki kuvat
@@ -359,35 +359,40 @@ export default function ProfilePage() {
                 {/* Lightbox-albuminäkymässä */}
 
                 {selectedPhoto && (
-                    <div className="fixed inset-0 bg-black/90 z-50 flex flex-col impact-0 items-center justify-center p-4">
-                        <button
+                    <div className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center p-2 sm:p-4 md:p-8">
+                        
+                        {/* Sulkemisnappi: Isompi touch-alue mobiilissa, sijoitettu paremmin */}
+                        <button 
                             onClick={() => setSelectedPhoto(null)}
-                            className="absolute top-6 right-6 text-white text-4xl font-bold hover:text-gray-300"
+                            className="absolute top-4 right-4 md:top-6 md:right-6 text-white text-4xl md:text-5xl font-bold hover:text-gray-300 p-2 z-50"
                         >
                             &times;
                         </button>
-
-                        <div
-                            className="relative w-full max-w-4xl h-[70vh] mb-4"
-                        >
-
-                        <Image 
-                            src={selectedPhoto.image}
-                            alt={selectedPhoto.title}
-                            fill 
-                            className="object-contain"
-                            unoptimized
-                        />  
+                        
+                        {/* Kuva-alue: Pienempi korkeus puhelimella (60vh) ja isompi koneella (75vh) */}
+                        <div className="relative w-full max-w-5xl h-[60vh] md:h-[75vh] mb-4 md:mb-6 mt-8 md:mt-0">
+                            <Image 
+                                src={selectedPhoto.image} 
+                                alt={selectedPhoto.title} 
+                                fill 
+                                className="object-contain" 
+                                unoptimized 
+                            />
                         </div>
-                    
-                        <div className="text-white text-center">
-                            <h2 className="text-2xl font-bold mb-2">{selectedPhoto.title}</h2>
-                            <p className="mb-6">{selectedPhoto.description}</p>
-                            <button
-                                onClick={() => handleDeletePhoto(selectedPhoto.id)}
-                                className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded text-white font-semibold">
-                                Poista kuva
-                            </button>
+                        
+
+                        <div className="text-white text-center max-w-2xl px-4 w-full">
+                            <h2 className="text-xl md:text-3xl font-bold mb-2">{selectedPhoto.title}</h2>
+                            <p className="text-sm md:text-lg text-gray-300 mb-6">{selectedPhoto.description}</p>
+                            
+                            {handleDeletePhoto && (
+                                <button 
+                                    onClick={() => handleDeletePhoto(selectedPhoto.id)}
+                                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700 px-6 py-3 md:py-2 rounded text-white font-semibold shadow-lg"
+                                >
+                                    Poista kuva
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}

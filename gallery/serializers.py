@@ -9,12 +9,14 @@ class AlbumSerializer(serializers.ModelSerializer):
         fields = ['id', 'owner', 'name', 'description', 'created_at']
 
 class PhotoSerializer(TaggitSerializer, serializers.ModelSerializer):
+
+    uploader_username = serializers.ReadOnlyField(source='owner.username')
     tags = TagListSerializerField()
     thumbnail = serializers.SerializerMethodField()
     
     class Meta:
         model = Photo
-        fields = ['id', 'album', 'title', 'description', 'image', 'thumbnail', 'tags', 'uploaded_at']
+        fields = ['id', 'album', 'title', 'description', 'image', 'thumbnail', 'tags', 'uploaded_at', 'uploader_username']
 
     def get_thumbnail(self, obj):
         if obj.image:
