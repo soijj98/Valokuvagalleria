@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
+from django.middleware.csrf import get_token
 from .models import Album, Photo
 from .serializers import AlbumSerializer, PhotoSerializer
 from sorl.thumbnail import get_thumbnail
@@ -43,7 +44,10 @@ def login_view(request):
     user = authenticate(username=username, password=password)
     if user:
         login(request, user)
-        return Response({'message': 'Kirjautuminen onnistui'})
+        return Response({
+            'csrf_token': get_token(request),
+            'message': 'Kirjautuminen onnistui'}
+        )
     return Response(
         {'error': 'Väärä käyttäjänimi tai salasana'},
         status=status.HTTP_401_UNAUTHORIZED

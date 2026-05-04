@@ -33,9 +33,15 @@ export default function UploadPage() {
 
     useEffect(() => {
         const fetchAlbums = async () => {
+
+            const csrftoken = getCookie('csrftoken'); 
+
             try {
                 const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/albums/`, {
                     method: 'GET',
+                    headers: {
+                    "X-CSRFToken": csrftoken || "",
+                },
                     credentials: 'include',
                 });
 

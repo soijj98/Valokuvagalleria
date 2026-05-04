@@ -4,6 +4,23 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+
+
+function getCookie(name: string) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+}
+
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -20,10 +37,13 @@ export default function RegisterPage() {
         return;
     }
 
+    const csrftoken = getCookie('csrftoken'); 
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register/`, {
         method: "POST",
         headers: {
+          "X-CSRFToken": csrftoken || "",
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ username, password })

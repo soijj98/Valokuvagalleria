@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-bc*lc0ynzr%4(*vk%e%(bo*x&dfz5=4*)gugt(^k^)&*&m&gtk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['valokuvagalleria-05qk.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -137,26 +137,24 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ALLOW_CREDENTIALS = True
 
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",
-#     "http://127.0.0.1:3000",  
-#     "https://valokuvagalleria.vercel.app",
-#     "https://valokuvagalleria-e8kcmnw8c-saijajoronen-1521s-projects.vercel.app", # LISÄTTY TÄMÄ
-# ]
 
-
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^http://localhost:3000$",
-    r"^http://127\.0\.0\.1:3000$",
-    r"^https://valokuvagalleria.*\.vercel\.app$", # Sallii KAIKKI Vercelin luomat alidomainit tälle projektille
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",  
+    "https://valokuvagalleria.vercel.app",
 ]
+
+
+# CORS_ALLOWED_ORIGIN_REGEXES = [
+#     r"^http://localhost:3000$",
+#     r"^http://127\.0\.0\.1:3000$",
+#     r"^https://valokuvagalleria.*\.vercel\.app$", # Sallii KAIKKI Vercelin luomat alidomainit tälle projektille
+# ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://valokuvagalleria.vercel.app", 
-    "https://*.vercel.app",
- #   "https://valokuvagalleria-e8kcmnw8c-saijajoronen-1521s-projects.vercel.app", # LISÄTTY TÄMÄ
+    "https://valokuvagalleria.vercel.app",
 ]
 
 
